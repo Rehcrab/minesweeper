@@ -16,6 +16,43 @@
             overflow: auto;
         }
 
+        #game-container {
+            display: flex;
+            gap: 20px;
+        }
+
+        #sidebar {
+            background-color: #e0e0e0;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: left;
+            min-width: 150px;
+        }
+
+        #sidebar h2 {
+            font-size: 20px;
+            margin-top: 0;
+        }
+
+        #sidebar p {
+            margin: 10px 0;
+            font-size: 16px;
+        }
+
+        #sidebar button {
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            background-color: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 3px;
+        }
+
+        #sidebar button:hover {
+            background-color: #cc0000;
+        }
+
         #game {
             text-align: center;
             padding: 20px;
@@ -25,42 +62,23 @@
             margin-bottom: 10px;
         }
 
-        #controls select {
+        #controls select, #controls input {
             padding: 5px;
             font-size: 16px;
-            margin-right: 10px;
+            margin: 5px;
+            width: 60px;
         }
 
         #custom-controls {
+            display: none;
             margin-top: 10px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
         }
 
-        #custom-controls label {
-            font-size: 14px;
-        }
-
-        #custom-controls input {
-            width: 60px;
-            padding: 5px;
-            font-size: 14px;
-        }
-
-        #custom-controls button {
-            padding: 5px 10px;
-            font-size: 14px;
-            cursor: pointer;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 3px;
-        }
-
-        #custom-controls button:hover {
-            background-color: #45a049;
+        .custom-label {
+            display: inline-block;
+            width: 150px;
+            text-align: right;
+            margin-right: 5px;
         }
 
         #board {
@@ -91,6 +109,16 @@
                 height: 18px;
                 font-size: 10px;
             }
+            #game-container {
+                flex-direction: column;
+            }
+            #sidebar {
+                text-align: center;
+                min-width: auto;
+            }
+            .custom-label {
+                width: 120px;
+            }
         }
 
         @media (max-width: 400px) {
@@ -98,6 +126,9 @@
                 width: 16px;
                 height: 16px;
                 font-size: 8px;
+            }
+            .custom-label {
+                width: 100px;
             }
         }
 
@@ -134,39 +165,52 @@
     </style>
 </head>
 <body>
-    <div id="game">
-        <h1>Minesweeper</h1>
-        <div id="controls">
-            <label for="difficulty">Select Difficulty:</label>
-            <select id="difficulty">
-                <option value="beginner">Beginner (9x9, 10 mines)</option>
-                <option value="intermediate">Intermediate (16x16, 40 mines)</option>
-                <option value="advanced">Advanced (30x16, 99 mines)</option>
-                <option value="custom">Custom</option>
-            </select>
-            <div id="custom-controls" style="display: none;">
-                <label for="custom-rows">Rows (1-50):</label>
-                <input type="number" id="custom-rows" min="1" max="50" value="9">
-                <label for="custom-cols">Columns (1-50):</label>
-                <input type="number" id="custom-cols" min="1" max="50" value="9">
-                <label for="custom-mines">Mines (0 to Rows*Cols-1):</label>
-                <input type="number" id="custom-mines" min="0" value="10">
-                <button id="apply-custom">Apply</button>
+    <div id="game-container">
+        <div id="sidebar">
+            <h2>Best Times</h2>
+            <p>Beginner: <span id="best-beginner">N/A</span></p>
+            <p>Intermediate: <span id="best-intermediate">N/A</span></p>
+            <p>Advanced: <span id="best-advanced">N/A</span></p>
+            <button id="delete-cookies">Reset Best Times</button>
+        </div>
+        <div id="game">
+            <h1>Minesweeper</h1>
+            <div id="controls">
+                <label for="difficulty">Select Difficulty:</label>
+                <select id="difficulty">
+                    <option value="beginner">Beginner (9x9, 10 mines)</option>
+                    <option value="intermediate">Intermediate (16x16, 40 mines)</option>
+                    <option value="advanced">Advanced (30x16, 99 mines)</option>
+                    <option value="custom">Custom</option>
+                </select>
+                <div id="custom-controls">
+                    <div>
+                        <span class="custom-label">Rows (1-50):</span>
+                        <input type="number" id="custom-rows" value="10">
+                    </div>
+                    <div>
+                        <span class="custom-label">Columns (1-50):</span>
+                        <input type="number" id="custom-cols" value="10">
+                    </div>
+                    <div>
+                        <span class="custom-label">Mines (0 to Rows×Cols-1):</span>
+                        <input type="number" id="custom-mines" value="10">
+                    </div>
+                </div>
             </div>
+            <div id="board"></div>
+            <div id="info">
+                <p id="status">Mines left: 10</p>
+                <p id="timer">Time: 0s</p>
+            </div>
+            <button id="reset">New Game</button>
         </div>
-        <div id="board"></div>
-        <div id="info">
-            <p id="status">Mines left: 10</p>
-            <p id="timer">Time: 0s</p>
-        </div>
-        <button id="reset">New Game</button>
     </div>
     <script>
         const levels = {
             beginner: { rows: 9, cols: 9, mines: 10, name: 'beginner' },
             intermediate: { rows: 16, cols: 16, mines: 40, name: 'intermediate' },
-            advanced: { rows: 16, cols: 30, mines: 99, name: 'advanced' },
-            custom: { rows: 9, cols: 9, mines: 10, name: 'custom' }
+            advanced: { rows: 16, cols: 30, mines: 99, name: 'advanced' }
         };
 
         let board = [];
@@ -176,6 +220,76 @@
         let currentLevel = levels.beginner;
         let timerInterval = null;
         let timeElapsed = 0;
+
+        // Cookie handling functions
+        function setCookie(name, value, days = 10000000) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            const expires = "; expires=" + date.toUTCString();
+            document.cookie = `${name}=${value}${expires}; path=/`;
+        }
+
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                let cookie = cookies[i].trim();
+                if (cookie.indexOf(nameEQ) === 0) {
+                    return cookie.substring(nameEQ.length);
+                }
+            }
+            return null;
+        }
+
+        function deleteAllCookies() {
+            ['beginner', 'intermediate', 'advanced'].forEach(level => {
+                document.cookie = `best-${level}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+            });
+            updateBestTimes();
+        }
+
+        function updateBestTimes() {
+            ['beginner', 'intermediate', 'advanced'].forEach(level => {
+                const bestTime = getCookie(`best-${level}`);
+                const element = document.getElementById(`best-${level}`);
+                element.textContent = bestTime ? `${bestTime}s` : 'N/A';
+            });
+        }
+
+        function validateCustomSettings() {
+            const rows = parseInt(document.getElementById('custom-rows').value);
+            const cols = parseInt(document.getElementById('custom-cols').value);
+            const mines = parseInt(document.getElementById('custom-mines').value);
+            
+            // If any value is NaN, use beginner settings
+            if (isNaN(rows) {
+                document.getElementById('custom-rows').value = 9;
+                return false;
+            }
+            if (isNaN(cols)) {
+                document.getElementById('custom-cols').value = 9;
+                return false;
+            }
+            if (isNaN(mines)) {
+                document.getElementById('custom-mines').value = 10;
+                return false;
+            }
+            
+            // Clamp values to reasonable ranges
+            const clampedRows = Math.max(1, Math.min(50, rows));
+            const clampedCols = Math.max(1, Math.min(50, cols));
+            const maxMines = clampedRows * clampedCols - 1;
+            const clampedMines = Math.max(0, Math.min(maxMines, mines));
+            
+            if (rows !== clampedRows || cols !== clampedCols || mines !== clampedMines) {
+                document.getElementById('custom-rows').value = clampedRows;
+                document.getElementById('custom-cols').value = clampedCols;
+                document.getElementById('custom-mines').value = clampedMines;
+                return false;
+            }
+            
+            return true;
+        }
 
         function initBoard(firstClickRow = -1, firstClickCol = -1) {
             const { rows, cols, mines } = currentLevel;
@@ -315,7 +429,7 @@
         }
 
         function checkWin() {
-            const { rows, cols, mines } = currentLevel;
+            const { rows, cols, mines, name } = currentLevel;
             let nonMineCellsRevealed = 0;
             for (let i = 0; i < rows; i++) {
                 for (let j = 0; j < cols; j++) {
@@ -328,6 +442,15 @@
                 gameOver = true;
                 document.getElementById('status').textContent = 'Congratulations! You won!';
                 stopTimer();
+                
+                // Only save best times for standard difficulties
+                if (name !== 'custom') {
+                    const bestTime = getCookie(`best-${name}`);
+                    if (!bestTime || timeElapsed < parseInt(bestTime)) {
+                        setCookie(`best-${name}`, timeElapsed.toString());
+                        updateBestTimes();
+                    }
+                }
             }
         }
 
@@ -363,26 +486,6 @@
             }
         }
 
-        function validateCustomBoard() {
-            let rows = parseInt(document.getElementById('custom-rows').value) || 9;
-            let cols = parseInt(document.getElementById('custom-cols').value) || 9;
-            let mines = parseInt(document.getElementById('custom-mines').value) || 10;
-
-            rows = Math.max(1, Math.min(50, rows));
-            cols = Math.max(1, Math.min(50, cols));
-            mines = Math.max(0, Math.min(rows * cols - 1, mines));
-
-            levels.custom.rows = rows;
-            levels.custom.cols = cols;
-            levels.custom.mines = mines;
-
-            document.getElementById('custom-rows').value = rows;
-            document.getElementById('custom-cols').value = cols;
-            document.getElementById('custom-mines').value = mines;
-
-            return { rows, cols, mines };
-        }
-
         function resetGame() {
             gameOver = false;
             firstClick = true;
@@ -397,26 +500,55 @@
 
         function changeDifficulty() {
             const difficulty = document.getElementById('difficulty').value;
-            document.getElementById('custom-controls').style.display = difficulty === 'custom' ? 'flex' : 'none';
-            if (difficulty !== 'custom') {
+            const customControls = document.getElementById('custom-controls');
+            
+            if (difficulty === 'custom') {
+                customControls.style.display = 'block';
+                // Set default custom values
+                document.getElementById('custom-rows').value = 10;
+                document.getElementById('custom-cols').value = 10;
+                document.getElementById('custom-mines').value = 10;
+            } else {
+                customControls.style.display = 'none';
                 currentLevel = levels[difficulty];
                 resetGame();
             }
         }
 
-        function applyCustomBoard() {
-            if (document.getElementById('difficulty').value === 'custom') {
-                validateCustomBoard();
-                currentLevel = levels.custom;
-                resetGame();
+        function startCustomGame() {
+            if (!validateCustomSettings()) {
+                // If invalid settings, fall back to beginner
+                document.getElementById('difficulty').value = 'beginner';
+                document.getElementById('custom-controls').style.display = 'none';
+                currentLevel = levels.beginner;
+            } else {
+                const rows = parseInt(document.getElementById('custom-rows').value);
+                const cols = parseInt(document.getElementById('custom-cols').value);
+                const mines = parseInt(document.getElementById('custom-mines').value);
+                
+                currentLevel = {
+                    rows: rows,
+                    cols: cols,
+                    mines: mines,
+                    name: 'custom'
+                };
             }
+            resetGame();
         }
 
-        document.getElementById('reset').addEventListener('click', resetGame);
+        document.getElementById('reset').addEventListener('click', function() {
+            if (document.getElementById('difficulty').value === 'custom') {
+                startCustomGame();
+            } else {
+                resetGame();
+            }
+        });
+
         document.getElementById('difficulty').addEventListener('change', changeDifficulty);
-        document.getElementById('apply-custom').addEventListener('click', applyCustomBoard);
+        document.getElementById('delete-cookies').addEventListener('click', deleteAllCookies);
 
         // Initialize the game
+        updateBestTimes();
         resetGame();
     </script>
 </body>
